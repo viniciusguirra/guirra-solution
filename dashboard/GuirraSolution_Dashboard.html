@@ -1,0 +1,1624 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guirra Solution — Plataforma de Conciliação Financeira</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:    #0D1B2E;
+  --navy2:   #132338;
+  --navy3:   #1A3050;
+  --blue:    #1B6CA8;
+  --teal:    #00C896;
+  --teal2:   #00A878;
+  --amber:   #F5A623;
+  --red:     #E8394A;
+  --red2:    #FF6B7A;
+  --purple:  #8B6CF7;
+  --slate:   #1E293B;
+  --slate2:  #243447;
+  --border:  rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text1:   #F0F4FF;
+  --text2:   #94A8C0;
+  --text3:   #5A7090;
+  --glass:   rgba(255,255,255,0.04);
+  --glass2:  rgba(255,255,255,0.08);
+  --shadow:  0 8px 32px rgba(0,0,0,0.4);
+  --shadow2: 0 2px 8px rgba(0,0,0,0.3);
+  --radius:  14px;
+  --radius2: 10px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--navy);
+  color:var(--text1);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── BACKGROUND TEXTURE ── */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 80% 50% at 10% 20%, rgba(27,108,168,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 80%, rgba(0,200,150,0.07) 0%, transparent 60%),
+    repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(255,255,255,0.012) 60px),
+    repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(255,255,255,0.012) 60px);
+}
+
+/* ── SIDEBAR ── */
+#sidebar{
+  position:fixed;left:0;top:0;bottom:0;width:68px;
+  background:rgba(13,27,46,0.97);
+  border-right:1px solid var(--border2);
+  display:flex;flex-direction:column;align-items:center;
+  padding:16px 0;z-index:100;
+  backdrop-filter:blur(20px);
+  transition:width 0.3s cubic-bezier(.4,0,.2,1);
+}
+#sidebar.expanded{width:220px;align-items:flex-start;padding:16px 0}
+#sidebar .brand{
+  display:flex;align-items:center;gap:12px;
+  padding:0 16px;margin-bottom:28px;width:100%;overflow:hidden;
+}
+#sidebar .brand-icon{
+  width:36px;height:36px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--teal),var(--blue));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:14px;color:#fff;font-family:'Syne',sans-serif;
+}
+#sidebar .brand-text{
+  font-family:'Syne',sans-serif;font-weight:800;font-size:13px;
+  color:var(--text1);white-space:nowrap;opacity:0;
+  transition:opacity 0.2s;line-height:1.2;
+}
+#sidebar.expanded .brand-text{opacity:1}
+
+.nav-item{
+  width:100%;position:relative;
+  display:flex;align-items:center;gap:12px;
+  padding:11px 16px;cursor:pointer;
+  color:var(--text3);transition:all 0.2s;
+  border-left:2px solid transparent;overflow:hidden;
+}
+.nav-item:hover{color:var(--text2);background:var(--glass2)}
+.nav-item.active{
+  color:var(--teal);background:rgba(0,200,150,0.08);
+  border-left-color:var(--teal);
+}
+.nav-item .nav-icon{
+  width:20px;height:20px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+}
+.nav-item .nav-label{
+  font-size:12px;font-weight:500;white-space:nowrap;
+  opacity:0;transition:opacity 0.2s;
+}
+#sidebar.expanded .nav-label{opacity:1}
+.nav-item .nav-badge{
+  margin-left:auto;background:var(--red);color:#fff;
+  font-size:9px;font-weight:700;padding:2px 5px;border-radius:99px;
+  opacity:0;transition:opacity 0.2s;
+}
+#sidebar.expanded .nav-badge{opacity:1}
+
+.nav-section{
+  font-size:9px;font-weight:700;letter-spacing:1.5px;
+  color:var(--text3);padding:16px 16px 6px;
+  text-transform:uppercase;white-space:nowrap;
+  opacity:0;transition:opacity 0.2s;
+}
+#sidebar.expanded .nav-section{opacity:1}
+
+#toggle-sidebar{
+  margin-top:auto;width:100%;
+  display:flex;align-items:center;gap:12px;
+  padding:11px 16px;cursor:pointer;
+  color:var(--text3);transition:all 0.2s;
+}
+#toggle-sidebar:hover{color:var(--text2)}
+
+/* ── MAIN LAYOUT ── */
+#main{
+  margin-left:68px;transition:margin-left 0.3s cubic-bezier(.4,0,.2,1);
+  min-height:100vh;position:relative;z-index:1;
+}
+#sidebar.expanded ~ #main{margin-left:220px}
+
+/* ── TOPBAR ── */
+#topbar{
+  height:60px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;
+  border-bottom:1px solid var(--border);
+  background:rgba(13,27,46,0.8);backdrop-filter:blur(20px);
+  position:sticky;top:0;z-index:50;
+}
+.topbar-left{display:flex;align-items:center;gap:16px}
+.topbar-title{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;color:var(--text1)}
+.topbar-sub{font-size:12px;color:var(--text3)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.badge-live{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.2);
+  border-radius:99px;padding:5px 12px;
+  font-size:11px;color:var(--teal);font-weight:600;
+}
+.badge-live::before{
+  content:'';width:6px;height:6px;border-radius:50%;
+  background:var(--teal);animation:pulse-dot 2s infinite;
+}
+@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
+
+.period-badge{
+  background:var(--glass2);border:1px solid var(--border2);
+  border-radius:8px;padding:5px 12px;
+  font-size:11px;color:var(--text2);
+  font-family:'DM Mono',monospace;
+}
+
+/* ── CONTENT PANELS ── */
+.panel{display:none;padding:24px 28px;animation:fadeIn 0.3s ease}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── SECTION TITLES ── */
+.section-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;
+}
+.section-title{
+  font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:var(--text1);
+}
+.section-sub{font-size:12px;color:var(--text3);margin-top:3px}
+.section-tag{
+  font-size:10px;font-weight:700;letter-spacing:1px;
+  text-transform:uppercase;padding:4px 10px;border-radius:6px;
+}
+.tag-green{background:rgba(0,200,150,0.12);color:var(--teal);border:1px solid rgba(0,200,150,0.2)}
+.tag-amber{background:rgba(245,166,35,0.12);color:var(--amber);border:1px solid rgba(245,166,35,0.2)}
+.tag-red{background:rgba(232,57,74,0.12);color:var(--red);border:1px solid rgba(232,57,74,0.2)}
+.tag-blue{background:rgba(27,108,168,0.15);color:#5BB3F0;border:1px solid rgba(27,108,168,0.25)}
+
+/* ── KPI GRID ── */
+.kpi-grid{
+  display:grid;gap:14px;margin-bottom:24px;
+}
+.kpi-grid-4{grid-template-columns:repeat(4,1fr)}
+.kpi-grid-3{grid-template-columns:repeat(3,1fr)}
+
+.kpi-card{
+  background:var(--slate2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:18px 20px;
+  position:relative;overflow:hidden;
+  transition:transform 0.2s,border-color 0.2s;cursor:default;
+}
+.kpi-card:hover{transform:translateY(-2px);border-color:var(--border2)}
+.kpi-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--accent,var(--teal)),transparent);
+}
+.kpi-card.teal{--accent:var(--teal)}
+.kpi-card.amber{--accent:var(--amber)}
+.kpi-card.red{--accent:var(--red)}
+.kpi-card.blue{--accent:var(--blue)}
+.kpi-card.purple{--accent:var(--purple)}
+
+.kpi-icon{
+  width:36px;height:36px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;margin-bottom:14px;
+  background:rgba(255,255,255,0.05);
+}
+.kpi-value{
+  font-family:'DM Mono',monospace;font-size:22px;font-weight:500;
+  color:var(--text1);line-height:1;margin-bottom:6px;
+}
+.kpi-label{font-size:11px;color:var(--text3);font-weight:500;letter-spacing:0.3px}
+.kpi-delta{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:10px;font-weight:600;padding:2px 7px;
+  border-radius:99px;margin-top:8px;
+}
+.delta-up{background:rgba(0,200,150,0.1);color:var(--teal)}
+.delta-down{background:rgba(232,57,74,0.1);color:var(--red)}
+.delta-warn{background:rgba(245,166,35,0.1);color:var(--amber)}
+
+/* ── CHART CARDS ── */
+.chart-grid{display:grid;gap:16px;margin-bottom:24px}
+.chart-grid-2{grid-template-columns:1fr 1fr}
+.chart-grid-3{grid-template-columns:2fr 1fr 1fr}
+.chart-grid-21{grid-template-columns:2fr 1fr}
+.chart-grid-12{grid-template-columns:1fr 2fr}
+
+.card{
+  background:var(--slate2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:20px;
+  position:relative;
+}
+.card-full{grid-column:1/-1}
+.card-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:18px;
+}
+.card-title{font-size:13px;font-weight:600;color:var(--text1)}
+.card-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.chart-wrap{position:relative;height:200px}
+.chart-wrap-sm{height:160px}
+.chart-wrap-lg{height:260px}
+.chart-wrap-xl{height:320px}
+
+/* ── CONCILIATION PROGRESS BAR ── */
+.conc-bar-wrap{margin-bottom:20px}
+.conc-bar-header{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:8px;
+}
+.conc-bar-label{font-size:12px;color:var(--text2);font-weight:500}
+.conc-bar-pct{
+  font-family:'DM Mono',monospace;font-size:20px;font-weight:500;
+  color:var(--teal);
+}
+.conc-bar-track{
+  height:10px;border-radius:99px;
+  background:rgba(255,255,255,0.06);overflow:hidden;position:relative;
+}
+.conc-bar-fill{
+  height:100%;border-radius:99px;
+  transition:width 1.2s cubic-bezier(.4,0,.2,1);
+  background:linear-gradient(90deg,var(--teal2),var(--teal));
+  position:relative;
+}
+.conc-bar-fill::after{
+  content:'';position:absolute;top:0;right:0;bottom:0;width:30px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3));
+}
+
+/* ── STATUS TABLE ── */
+.status-table{width:100%;border-collapse:collapse}
+.status-table th{
+  font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:var(--text3);padding:8px 12px;text-align:left;
+  border-bottom:1px solid var(--border);
+}
+.status-table td{
+  font-size:12px;padding:10px 12px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  color:var(--text2);
+}
+.status-table tr:last-child td{border-bottom:none}
+.status-table tr:hover td{background:var(--glass);color:var(--text1)}
+
+.pill{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 9px;border-radius:99px;font-size:10px;font-weight:700;
+}
+.pill::before{
+  content:'';width:5px;height:5px;border-radius:50%;background:currentColor;
+}
+.pill-green{background:rgba(0,200,150,0.12);color:var(--teal)}
+.pill-amber{background:rgba(245,166,35,0.12);color:var(--amber)}
+.pill-red{background:rgba(232,57,74,0.12);color:var(--red)}
+.pill-gray{background:rgba(148,168,192,0.1);color:var(--text3)}
+.pill-blue{background:rgba(27,108,168,0.15);color:#5BB3F0}
+.pill-purple{background:rgba(139,108,247,0.15);color:var(--purple)}
+
+/* ── WATERFALL CUSTOM ── */
+.waterfall{display:flex;flex-direction:column;gap:6px;padding:4px 0}
+.wf-row{display:flex;align-items:center;gap:12px}
+.wf-label{font-size:11px;color:var(--text3);width:130px;flex-shrink:0;text-align:right}
+.wf-bar-wrap{flex:1;position:relative;height:22px;background:rgba(255,255,255,0.04);border-radius:4px;overflow:hidden}
+.wf-bar{height:100%;border-radius:4px;transition:width 1s ease}
+.wf-bar-teal{background:linear-gradient(90deg,var(--teal2),var(--teal))}
+.wf-bar-red{background:linear-gradient(90deg,#b52535,var(--red))}
+.wf-bar-amber{background:linear-gradient(90deg,#c47800,var(--amber))}
+.wf-bar-blue{background:linear-gradient(90deg,#124d7c,var(--blue))}
+.wf-bar-purple{background:linear-gradient(90deg,#6345d4,var(--purple))}
+.wf-value{font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);width:110px;flex-shrink:0}
+
+/* ── AGING PIPELINE ── */
+.aging-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.aging-card{
+  background:var(--glass);border:1px solid var(--border);
+  border-radius:10px;padding:14px;text-align:center;
+}
+.aging-days{font-size:10px;color:var(--text3);margin-bottom:6px;font-weight:600}
+.aging-qtd{font-family:'DM Mono',monospace;font-size:22px;font-weight:500;margin-bottom:4px}
+.aging-val{font-size:11px;color:var(--text3)}
+
+/* ── FUNIL ── */
+.funnel{display:flex;flex-direction:column;align-items:center;gap:3px}
+.funnel-step{
+  border-radius:8px;display:flex;align-items:center;justify-content:space-between;
+  padding:10px 20px;transition:all 0.3s;cursor:default;
+}
+.funnel-step:hover{filter:brightness(1.1)}
+.funnel-label{font-size:12px;font-weight:600;color:#fff}
+.funnel-count{font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:rgba(255,255,255,0.85)}
+
+/* ── MINI STAT ROW ── */
+.stat-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 0;border-bottom:1px solid var(--border);
+}
+.stat-row:last-child{border-bottom:none}
+.stat-row-label{font-size:12px;color:var(--text2)}
+.stat-row-value{font-family:'DM Mono',monospace;font-size:13px;color:var(--text1);font-weight:500}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.2)}
+
+/* ── TOOLTIP ── */
+.tooltip-custom{
+  background:var(--navy2)!important;border:1px solid var(--border2)!important;
+  border-radius:8px!important;padding:10px 14px!important;
+  font-family:'DM Sans',sans-serif!important;
+  box-shadow:var(--shadow)!important;
+}
+
+/* ── GRID HELPERS ── */
+.mb16{margin-bottom:16px}
+.mb24{margin-bottom:24px}
+.flex{display:flex;align-items:center}
+.gap8{gap:8px}
+.gap12{gap:12px}
+.gap16{gap:16px}
+.ml-auto{margin-left:auto}
+
+/* ── HIGHLIGHT NUMBER ── */
+.hl{color:var(--teal);font-family:'DM Mono',monospace}
+.hl-amber{color:var(--amber);font-family:'DM Mono',monospace}
+.hl-red{color:var(--red);font-family:'DM Mono',monospace}
+
+/* ── DIVIDER ── */
+.divider{height:1px;background:var(--border);margin:20px 0}
+
+/* ── ALERT BOX ── */
+.alert{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:14px 16px;border-radius:10px;margin-bottom:12px;
+}
+.alert-warn{background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2)}
+.alert-danger{background:rgba(232,57,74,0.08);border:1px solid rgba(232,57,74,0.2)}
+.alert-ok{background:rgba(0,200,150,0.08);border:1px solid rgba(0,200,150,0.2)}
+.alert-icon{font-size:16px;margin-top:1px;flex-shrink:0}
+.alert-text{font-size:12px;color:var(--text2);line-height:1.5}
+.alert-text strong{color:var(--text1);font-weight:600}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .kpi-grid-4{grid-template-columns:repeat(2,1fr)}
+  .chart-grid-2,.chart-grid-3,.chart-grid-21,.chart-grid-12{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="brand">
+    <div class="brand-icon">GS</div>
+    <div class="brand-text">Guirra Solution<br><span style="font-size:10px;color:var(--text3);font-weight:400">Conciliação Financeira</span></div>
+  </div>
+
+  <div class="nav-section">Principal</div>
+  <div class="nav-item active" data-tab="visao-geral">
+    <div class="nav-icon">⬡</div>
+    <span class="nav-label">Visão Geral</span>
+  </div>
+  <div class="nav-item" data-tab="conciliacao">
+    <div class="nav-icon">⇄</div>
+    <span class="nav-label">Resumo Conciliação</span>
+  </div>
+
+  <div class="nav-section">Conciliações</div>
+  <div class="nav-item" data-tab="pagamentos">
+    <div class="nav-icon">◈</div>
+    <span class="nav-label">Pagamentos / Anulações</span>
+  </div>
+  <div class="nav-item" data-tab="reembolsos">
+    <div class="nav-icon">↩</div>
+    <span class="nav-label">Reembolsos</span>
+  </div>
+  <div class="nav-item" data-tab="parcelamentos">
+    <div class="nav-icon">⊞</div>
+    <span class="nav-label">Parcelamentos</span>
+  </div>
+  <div class="nav-item" data-tab="chargebacks">
+    <div class="nav-icon">⚑</div>
+    <span class="nav-label">Chargebacks</span>
+    <span class="nav-badge">!</span>
+  </div>
+
+  <div class="nav-section">Financeiro</div>
+  <div class="nav-item" data-tab="taxas">
+    <div class="nav-icon">◎</div>
+    <span class="nav-label">Taxas &amp; Custos</span>
+  </div>
+  <div class="nav-item" data-tab="recebiveis">
+    <div class="nav-icon">◬</div>
+    <span class="nav-label">Recebíveis</span>
+  </div>
+
+  <div id="toggle-sidebar">
+    <div class="nav-icon" style="font-size:14px">⟫</div>
+    <span class="nav-label">Recolher</span>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+  <!-- TOPBAR -->
+  <div id="topbar">
+    <div class="topbar-left">
+      <div>
+        <div class="topbar-title" id="topbar-title">Visão Geral da Operação</div>
+        <div class="topbar-sub">Adquirente XZ · Jan–Mar 2025</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="badge-live">Atualizado</div>
+      <div class="period-badge">01/01/2025 – 31/03/2025</div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- PANEL 1 · VISÃO GERAL                        -->
+  <!-- ════════════════════════════════════════════ -->
+  <div class="panel active" id="panel-visao-geral">
+
+    <!-- KPI Row 1 -->
+    <div class="kpi-grid kpi-grid-4 mb16">
+      <div class="kpi-card teal">
+        <div class="kpi-icon">💳</div>
+        <div class="kpi-value" id="kpi-tpv">R$ 1,49M</div>
+        <div class="kpi-label">Volume Total de Pagamentos (TPV)</div>
+        <span class="kpi-delta delta-up">▲ Jan–Mar 2025</span>
+      </div>
+      <div class="kpi-card blue">
+        <div class="kpi-icon">⟲</div>
+        <div class="kpi-value" id="kpi-tpt">47.281</div>
+        <div class="kpi-label">Total de Transações Processadas (TPT)</div>
+        <span class="kpi-delta delta-up">▲ 3 meses</span>
+      </div>
+      <div class="kpi-card teal">
+        <div class="kpi-icon">✓</div>
+        <div class="kpi-value" id="kpi-taxa">91,6%</div>
+        <div class="kpi-label">Taxa de Conciliação Geral</div>
+        <span class="kpi-delta delta-warn">⚡ Meta: 98%</span>
+      </div>
+      <div class="kpi-card red">
+        <div class="kpi-icon">⚠</div>
+        <div class="kpi-value" id="kpi-nao-conc">R$ 25.340</div>
+        <div class="kpi-label">Valor Não Conciliado</div>
+        <span class="kpi-delta delta-down">▼ Em análise</span>
+      </div>
+    </div>
+
+    <!-- KPI Row 2 -->
+    <div class="kpi-grid kpi-grid-4 mb24">
+      <div class="kpi-card red">
+        <div class="kpi-icon">⛔</div>
+        <div class="kpi-value" id="kpi-cb-valor">R$ 93.999</div>
+        <div class="kpi-label">Chargebacks em Aberto</div>
+        <span class="kpi-delta delta-down">2.971 vencidos</span>
+      </div>
+      <div class="kpi-card amber">
+        <div class="kpi-icon">◎</div>
+        <div class="kpi-value" id="kpi-custo">R$ 17.962</div>
+        <div class="kpi-label">Custo Total da Operação</div>
+        <span class="kpi-delta delta-warn">3,46% do TPV</span>
+      </div>
+      <div class="kpi-card teal">
+        <div class="kpi-icon">◬</div>
+        <div class="kpi-value" id="kpi-liquido">R$ 500.765</div>
+        <div class="kpi-label">Recebíveis Líquidos</div>
+        <span class="kpi-delta delta-up">96,5% margem</span>
+      </div>
+      <div class="kpi-card blue">
+        <div class="kpi-icon">⇈</div>
+        <div class="kpi-value" id="kpi-saldo">R$ 122.437</div>
+        <div class="kpi-label">Saldo Operacional Final</div>
+        <span class="kpi-delta delta-up">▲ Positivo</span>
+      </div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="chart-grid chart-grid-3 mb24">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">TPV Mensal</div><div class="card-sub">Volume por mês · R$</div></div>
+          <span class="section-tag tag-green">Tendência</span>
+        </div>
+        <div class="chart-wrap chart-wrap-lg"><canvas id="chart-tpv-mensal"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">TPV por Bandeira</div><div class="card-sub">Distribuição volumétrica</div></div>
+          <span class="section-tag tag-blue">Mix</span>
+        </div>
+        <div class="chart-wrap chart-wrap-lg"><canvas id="chart-bandeira"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">TPV por Canal</div><div class="card-sub">App · POS · Mkt · Ecom</div></div>
+          <span class="section-tag tag-blue">Canal</span>
+        </div>
+        <div class="chart-wrap chart-wrap-lg"><canvas id="chart-canal"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="chart-grid chart-grid-21 mb24">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">TPV por Tipo de Movimento</div><div class="card-sub">Venda · Captura · Chargeback · Refund</div></div>
+          <span class="section-tag tag-amber">Movimentos</span>
+        </div>
+        <div class="chart-wrap"><canvas id="chart-movimento"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">TPT por Mês</div><div class="card-sub">Quantidade de transações</div></div>
+          <span class="section-tag tag-blue">Volume</span>
+        </div>
+        <div class="chart-wrap"><canvas id="chart-tpt-mensal"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Alerts -->
+    <div class="alert alert-danger">
+      <div class="alert-icon">🔴</div>
+      <div class="alert-text"><strong>2.971 chargebacks com prazo vencido</strong> — Todos os chargebacks ultrapassaram os 45 dias de contestação. Ação imediata necessária junto à adquirente XZ para recuperação de valores.</div>
+    </div>
+    <div class="alert alert-warn">
+      <div class="alert-icon">⚠️</div>
+      <div class="alert-text"><strong>Taxa de conciliação em 91,6%</strong> — Abaixo da meta de 98%. Principais causas: 622 transações autorizadas sem captura e 49 NSUs duplicados na base interna.</div>
+    </div>
+    <div class="alert alert-ok">
+      <div class="alert-icon">✅</div>
+      <div class="alert-text"><strong>Zero divergência de valores</strong> — Para todos os 15.641 pares conciliados, não foi detectada nenhuma diferença de valor entre base interna e adquirente.</div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- PANEL 2 · RESUMO CONCILIAÇÃO                 -->
+  <!-- ════════════════════════════════════════════ -->
+  <div class="panel" id="panel-conciliacao">
+    <div class="kpi-grid kpi-grid-4 mb24">
+      <div class="kpi-card teal">
+        <div class="kpi-icon">✓</div>
+        <div class="kpi-value">15.641</div>
+        <div class="kpi-label">Registros Conciliados</div>
+        <span class="kpi-delta delta-up">91,6% do total</span>
+      </div>
+      <div class="kpi-card amber">
+        <div class="kpi-icon">⏳</div>
+        <div class="kpi-value">805</div>
+        <div class="kpi-label">Sem Par na Adquirente</div>
+        <span class="kpi-delta delta-warn">4,7% do total</span>
+      </div>
+      <div class="kpi-card amber">
+        <div class="kpi-icon">⌛</div>
+        <div class="kpi-value">622</div>
+        <div class="kpi-label">Autorizadas / Expiradas</div>
+        <span class="kpi-delta delta-warn">D+2 pendente</span>
+      </div>
+      <div class="kpi-card red">
+        <div class="kpi-icon">✗</div>
+        <div class="kpi-value">856</div>
+        <div class="kpi-label">Negadas (excluídas)</div>
+        <span class="kpi-delta delta-down">Normal — excl.</span>
+      </div>
+    </div>
+
+    <div class="chart-grid chart-grid-21 mb24">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Status de Conciliação — Distribuição</div><div class="card-sub">Por quantidade de registros</div></div>
+        </div>
+        <div class="chart-wrap chart-wrap-lg"><canvas id="chart-conc-status"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Funil de Conciliação</div><div class="card-sub">Total → Conciliado → Exceções</div></div>
+        </div>
+        <div style="padding:8px 0">
+          <div class="funnel" id="funil-conc"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb24">
+      <div class="card-header">
+        <div><div class="card-title">Conciliação por Bandeira</div><div class="card-sub">TPV e status por bandeira de cartão</div></div>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-conc-bandeira"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div><div class="card-title">Matriz de Conciliação</div><div class="card-sub">Bandeira × Meio de Pagamento × Status</div></div>
+        <span class="section-tag tag-blue">Resumo</span>
+      </div>
+      <table class="status-table">
+        <thead><tr>
+          <th>Bandeira</th><th>Meio de Pagamento</th><th>Status</th>
+          <th>TPV (R$)</th><th>TPT (qtd)</th><th>% Conciliado</th>
+        </tr></thead>
+        <tbody id="matriz-conc"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- PANEL 3 · PAGAMENTOS / ANULAÇÕES             -->
+  <!-- ════════════════════════════════════════════ -->
+  <div class="panel" id="panel-pagamentos">
+    <div class="kpi-grid kpi-grid-4 mb24">
+      <div class="kpi-card teal">
+        <div class="kpi-icon">💳</div>
+        <div class="kpi-value">17.924</div>
+        <div class="kpi-label">Transações em Escopo (M01)</div>
+        <span class="kpi-delta delta-up">Venda + Captura + Canc.</span>
+      </div>
+      <div class="kpi-card teal">
+        <div class="kpi-icon">✓</div>
+        <div class="kpi-value">15.641</div>
+        <div class="kpi-label">Pagamentos Conciliados</div>
+        <span class="kpi-delta delta-up">R$ 492.962</span>
+      </div>
+      <div class="kpi-card amber">
+        <div class="kpi-icon">⚡</div>
+        <div class="kpi-value">805</div>
+        <div class="kpi-label">Sem Par na Adquirente</div>
+        <span class="kpi-delta delta-warn">R$ 25.340</span>
+      </div>
+      <div class="kpi-card red">
+        <div class="kpi-icon">✗</div>
+        <div class="kpi-value">0</div>
+        <div class="kpi-label">Divergências de Valor</div>
+        <span class="kpi-delta delta-up">✓ Zero divergências</span>
+      </div>
+    </div>
+
+    <div class="chart-grid chart-grid-2 mb24">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Status M01 — Pagamentos</div><div class="card-sub">Distribuição por classificação</div></div>
+        </div>
+        <div class="chart-wrap"><canvas id="chart-m01-status"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Causas das Não-Conciliações</div><div class="card-sub">Análise de causa raiz</div></div>
+        </div>
+        <div style="padding:8px 0 0">
+          <div class="stat-row">
+            <span class="stat-row-label">🔴 NSU duplicado na BI</span>
+            <span class="stat-row-value hl-red">49 NSUs</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-row-label">⚡ Autorizadas sem captura (D+2)</span>
+            <span class="stat-row-value hl-amber">622 tx</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-row-label">✗ Transações negadas (excluídas)</span>
+            <span class="stat-row-value" style="color:var(--text3)">856 tx</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-row-label">⚑ CB/Representação (módulo próprio)</span>
+            <span class="stat-row-value" style="color:var(--text3)">152 tx</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-row-label">✓ Sem par residual</span>
+            <span class="stat-row-value hl-amber">805 tx</span>
+          </div>
+          <div class="divider" style="margin:12px 0 0"></div>
+          <div class="stat-row">
+            <span class="stat-row-label" style="font-weight:600;color:var(--text1)">Tolerância de valor aplicada</span>
+            <span class="stat-row-value">R$ 0,02</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-row-label" style="font-weight:600;color:var(--text1)">Tolerância de data</span>
+            <span class="stat-row-value">D+2</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-grid chart-grid-2 mb24">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Pagamentos Conciliados × Não Conciliados</div><div class="card-sub">Valor em R$ por status</div></div>
+        </div>
+        <div class="chart-wrap"><canvas id="chart-pag-valor"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Conciliação por Status Operacional</div><div class="card-sub">Capturada · Autorizada · Cancelada</div></div>
+        </div>
+        <div class="chart-wrap"><canvas id="chart-pag-status-op"></canvas></div>
+      </div>
+    </div>
+
+    <div class="alert alert-warn">
+      <div class="alert-icon">⚠️</div>
+      <div class="alert-text"><strong>Formatos de data inconsistentes na BASE_INTERNA:</strong> Foram identificados 4 formatos distintos (ISO-8601 40%, BR sem hora 20%, Dash+hora 20%, Space+seg 20%). A normalização automática foi aplicada pelo pipeline, mas a correção na origem é recomendada.</div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- PANEL 4 · REEMBOLSOS                         -->
+  <!-- ════════════════════════════════════════════ -->
+  <div class="panel" id="panel-reembolsos">
+    <div class="kpi-grid kpi-grid-4 mb24">
+      <div class="kpi-card blue">
+        <div class="kpi-icon">↩</div>
+        <div class="kpi-value">3.108</div>
+        <div class="kpi-label">Total Refunds (BID)</div>
+        <span class="kpi-delta delta-up">BASE_INTERNA_DEBITOS</span>
+      </div>
+      <div class="kpi-card blue">
+        <div class="kpi-icon">⊞</div>
+        <div class="kpi-value">9.250</div>
+        <div class="kpi-label">Refunds Parciais (DTP)</div>
+        <span class="kpi-delta delta-up">DEBITOS_THIRD_PARTY</span>
+      </div>
+      <div class="kpi-card teal">
+        <div class="kpi-icon">◈</div>
+        <div class="kpi-value">R$ 89.467</div>
+        <div class="kpi-label">Valor Reembolsado (BID)</div>
+        <span class="kpi-delta delta-up">Positivos</span>
+      </div>
+      <div class="kpi-card amber">
+        <div class="kpi-icon">⚠</div>
+        <div class="kpi-value">269</div>
+        <div class="kpi-label">Refunds c/ Valor Negativo</div>
+        <span class="kpi-delta delta-warn">🔴 Anomalia</span>
+      </div>
+    </div>
+
+    <div class="chart-grid chart-grid-21 mb24">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Distribuição de Refunds BID vs DTP</div><div class="card-sub">Granularidade: BID = cabeçalho · DTP = parcelas explodidas</div></div>
+        </div>
+        <div class="chart-wrap chart-wrap-lg"><canvas id="chart-refund-dist"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Análise de Anomalias</div><div class="card-sub">Refunds negativos</div></div>
+        </div>
+        <div style="padding:12px 0">
+          <div class="stat-row">
+            <span class="stat-row-label">Refunds BID positivos</span>
+            <span class="stat-row-value hl">2.839</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-row-label">Refunds BID negativos 🔴</span>
+            <span class="stat-row-value hl-red">269</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-row-label">Refunds DTP negativos 🔴</span>
+            <span class="stat-row-value hl-red">815</span>
+          </div>
+          <div class="divider"></div>
+          <div class="stat-row">
+            <span class="stat-row-label">DTP: linhas por NSU (min)</span>
+            <span class="stat-row-value">2</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-row-label">DTP: linhas por NSU (máx)</span>
+            <span class="stat-row-value">4</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-row-label">Cobertura BID × DTP por NSU</span>
+            <span class="stat-row-value hl">100%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb24">
+      <div class="card-header">
+        <div><div class="card-title">Reembolsos por Bandeira</div><div class="card-sub">Volume e anomalias</div></div>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-refund-band"></canvas></div>
+    </div>
+
+    <div class="alert alert-danger">
+      <div class="alert-icon">🔴</div>
+      <div class="alert-text"><strong>269 reembolsos com valor negativo na BID e 815 na DTP.</strong> Um reembolso deve sempre ter valor positivo (crédito ao cliente). Valores negativos indicam lançamentos invertidos ou erro de sinal no sistema de origem. Necessita correção imediata antes da conciliação contábil.</div>
+    </div>
+    <div class="alert alert-warn">
+      <div class="alert-icon">⚠️</div>
+      <div class="alert-text"><strong>Granularidade assimétrica:</strong> A BASE_INTERNA_DEBITOS registra o cabeçalho do refund (1 linha) enquanto a DEBITOS_THIRD_PARTY expande por parcela (2–4 linhas por NSU). O módulo M02 agrupa automaticamente a DTP antes do match.</div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- PANEL 5 · PARCELAMENTOS                      -->
+  <!-- ════════════════════════════════════════════ -->
+  <div class="panel" id="panel-parcelamentos">
+    <div class="kpi-grid kpi-grid-4 mb24">
+      <div class="kpi-card blue">
+        <div class="kpi-icon">⊞</div>
+        <div class="kpi-value">10.246</div>
+        <div class="kpi-label">Transações Parceladas (BI)</div>
+        <span class="kpi-delta delta-up">QTDE_PARCELAS > 1</span>
+      </div>
+      <div class="kpi-card teal">
+        <div class="kpi-icon">✓</div>
+        <div class="kpi-value">8.575</div>
+        <div class="kpi-label">NSUs Conciliados</div>
+        <span class="kpi-delta delta-up">83,7%</span>
+      </div>
+      <div class="kpi-card blue">
+        <div class="kpi-icon">◈</div>
+        <div class="kpi-value">42.406</div>
+        <div class="kpi-label">Parcelas na Adquirente (TP)</div>
+        <span class="kpi-delta delta-up">Explodidas por parcela</span>
+      </div>
+      <div class="kpi-card teal">
+        <div class="kpi-icon">⇄</div>
+        <div class="kpi-value">0</div>
+        <div class="kpi-label">Parcelas Incompletas</div>
+        <span class="kpi-delta delta-up">✓ Todas completas</span>
+      </div>
+    </div>
+
+    <div class="chart-grid chart-grid-2 mb24">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Distribuição por Número de Parcelas</div><div class="card-sub">Quantidade de transações × parcelas</div></div>
+        </div>
+        <div class="chart-wrap chart-wrap-lg"><canvas id="chart-parc-dist"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Relação BI × TP (Granularidade)</div><div class="card-sub">Cabeçalho vs parcelas explodidas</div></div>
+        </div>
+        <div style="padding:10px 0">
+          <div class="stat-row">
+            <span class="stat-row-label">Transações únicas na BI</span>
+            <span class="stat-row-value hl">19.643</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-row-label">Registros na TP (todas)</span>
+            <span class="stat-row-value hl">51.803</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-row-label">Ratio TP / BI</span>
+            <span class="stat-row-value">2,63x</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-row-label">Média parcelas na TP</span>
+            <span class="stat-row-value">5,56 parcelas</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-row-label">Média parcelas na BI</span>
+            <span class="stat-row-value">3,05 parcelas</span>
+          </div>
+          <div class="divider"></div>
+          <div class="stat-row">
+            <span class="stat-row-label" style="color:var(--teal);font-weight:600">Estratégia de match</span>
+            <span class="stat-row-value" style="color:var(--teal)">Agrupar TP por NSU</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-row-label">NSU máx. parcelas na TP</span>
+            <span class="stat-row-value">12 parcelas</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb24">
+      <div class="card-header">
+        <div><div class="card-title">Valor Total Parcelado por Número de Parcelas</div><div class="card-sub">Concentração de risco em parcelamentos longos</div></div>
+        <span class="section-tag tag-blue">MDR crescente com parcelas</span>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-parc-valor"></canvas></div>
+    </div>
+
+    <div class="alert alert-ok">
+      <div class="alert-icon">✅</div>
+      <div class="alert-text"><strong>Parcelamento 100% íntegro:</strong> Nenhuma parcela incompleta detectada. Todos os NSUs parcelados presentes na adquirente possuem a sequência completa de parcelas registradas.</div>
+    </div>
+    <div class="alert alert-warn">
+      <div class="alert-icon">⚠️</div>
+      <div class="alert-text"><strong>MDR aumenta com o número de parcelas.</strong> Transações parceladas em 7–12x pagam entre 3,59% e 4,19% de MDR vs 2,39% à vista. Monitorar concentração em parcelamentos longos como alavanca de redução de custo.</div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- PANEL 6 · CHARGEBACKS                        -->
+  <!-- ════════════════════════════════════════════ -->
+  <div class="panel" id="panel-chargebacks">
+    <div class="kpi-grid kpi-grid-4 mb24">
+      <div class="kpi-card red">
+        <div class="kpi-icon">⛔</div>
+        <div class="kpi-value">R$ 93.999</div>
+        <div class="kpi-label">Valor Total Chargebacks</div>
+        <span class="kpi-delta delta-down">Todos vencidos!</span>
+      </div>
+      <div class="kpi-card red">
+        <div class="kpi-icon">⚑</div>
+        <div class="kpi-value">2.971</div>
+        <div class="kpi-label">CBs com Prazo Vencido</div>
+        <span class="kpi-delta delta-down">> 45 dias</span>
+      </div>
+      <div class="kpi-card amber">
+        <div class="kpi-icon">⚡</div>
+        <div class="kpi-value">1.085</div>
+        <div class="kpi-label">CBs na Base Interna</div>
+        <span class="kpi-delta delta-warn">R$ 55.171 em risco</span>
+      </div>
+      <div class="kpi-card blue">
+        <div class="kpi-icon">↩</div>
+        <div class="kpi-value">634</div>
+        <div class="kpi-label">Representações Enviadas</div>
+        <span class="kpi-delta delta-up">Contestações</span>
+      </div>
+    </div>
+
+    <div class="chart-grid chart-grid-2 mb24">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Aging de Chargebacks</div><div class="card-sub">Faixas de vencimento</div></div>
+          <span class="section-tag tag-red">CRÍTICO</span>
+        </div>
+        <div style="padding:8px 0">
+          <div class="aging-grid" id="aging-grid"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Chargebacks por Bandeira</div><div class="card-sub">Quantidade e valor</div></div>
+        </div>
+        <div class="chart-wrap"><canvas id="chart-cb-band"></canvas></div>
+      </div>
+    </div>
+
+    <div class="chart-grid chart-grid-2 mb24">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Pipeline de Disputas</div><div class="card-sub">Status das contestações</div></div>
+        </div>
+        <div id="pipeline-disp" style="padding:8px 0"></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">CBs Debitados vs Pendentes</div><div class="card-sub">Módulo M05 — Chargebacks Debitados</div></div>
+        </div>
+        <div class="chart-wrap"><canvas id="chart-cb-debitado"></canvas></div>
+      </div>
+    </div>
+
+    <div class="alert alert-danger">
+      <div class="alert-icon">🔴</div>
+      <div class="alert-text"><strong>ATENÇÃO MÁXIMA — 100% dos chargebacks em prazo vencido.</strong> Todos os 2.971 chargebacks da base interna ultrapassaram os 45 dias regulamentares. Contatar urgentemente a adquirente XZ para verificar possibilidade de disputas retroativas e acionar área jurídica para análise de opções.</div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- PANEL 7 · TAXAS & CUSTOS                     -->
+  <!-- ════════════════════════════════════════════ -->
+  <div class="panel" id="panel-taxas">
+    <div class="kpi-grid kpi-grid-4 mb24">
+      <div class="kpi-card blue">
+        <div class="kpi-icon">💰</div>
+        <div class="kpi-value">R$ 518.727</div>
+        <div class="kpi-label">TPV Base de Cálculo MDR</div>
+        <span class="kpi-delta delta-up">Vendas + Capturas</span>
+      </div>
+      <div class="kpi-card teal">
+        <div class="kpi-icon">◎</div>
+        <div class="kpi-value">R$ 14.841</div>
+        <div class="kpi-label">MDR Contratado</div>
+        <span class="kpi-delta delta-up">2,86% médio</span>
+      </div>
+      <div class="kpi-card amber">
+        <div class="kpi-icon">◈</div>
+        <div class="kpi-value">R$ 14.841</div>
+        <div class="kpi-label">MDR Cobrado</div>
+        <span class="kpi-delta delta-warn">Dif: R$ -0,46</span>
+      </div>
+      <div class="kpi-card red">
+        <div class="kpi-icon">⚡</div>
+        <div class="kpi-value">1.163</div>
+        <div class="kpi-label">Divergências de MDR</div>
+        <span class="kpi-delta delta-warn">Revisar cobranças</span>
+      </div>
+    </div>
+
+    <div class="kpi-grid kpi-grid-3 mb24">
+      <div class="kpi-card amber">
+        <div class="kpi-icon">◬</div>
+        <div class="kpi-value">R$ 17.962</div>
+        <div class="kpi-label">Custo Total da Operação</div>
+        <span class="kpi-delta delta-warn">3,46% do TPV</span>
+      </div>
+      <div class="kpi-card blue">
+        <div class="kpi-icon">📊</div>
+        <div class="kpi-value">R$ 1.343</div>
+        <div class="kpi-label">PIS + COFINS + ISS</div>
+        <span class="kpi-delta delta-up">7,15% sobre MDR</span>
+      </div>
+      <div class="kpi-card teal">
+        <div class="kpi-icon">⇄</div>
+        <div class="kpi-value">R$ -0,46</div>
+        <div class="kpi-label">Diferença MDR Total</div>
+        <span class="kpi-delta delta-up">Favorável ao EC</span>
+      </div>
+    </div>
+
+    <div class="chart-grid chart-grid-2 mb24">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">MDR Contratado vs Cobrado por Bandeira</div><div class="card-sub">Comparação em R$</div></div>
+          <span class="section-tag tag-amber">Auditoria</span>
+        </div>
+        <div class="chart-wrap chart-wrap-lg"><canvas id="chart-mdr-comp"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Waterfall — Composição do Custo</div><div class="card-sub">Breakdown por componente</div></div>
+        </div>
+        <div class="waterfall" id="waterfall-custo" style="padding:16px 0"></div>
+      </div>
+    </div>
+
+    <div class="card mb24">
+      <div class="card-header">
+        <div><div class="card-title">Dicionário MDR Contratado</div><div class="card-sub">Referência de taxas por bandeira, modalidade e parcelamento</div></div>
+        <span class="section-tag tag-blue">Referência</span>
+      </div>
+      <table class="status-table">
+        <thead><tr><th>Bandeira</th><th>Modalidade</th><th>Parcelas</th><th>MDR (%)</th><th>Status</th></tr></thead>
+        <tbody id="mdr-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- PANEL 8 · RECEBÍVEIS                         -->
+  <!-- ════════════════════════════════════════════ -->
+  <div class="panel" id="panel-recebiveis">
+    <div class="kpi-grid kpi-grid-4 mb24">
+      <div class="kpi-card blue">
+        <div class="kpi-icon">💳</div>
+        <div class="kpi-value">R$ 518.727</div>
+        <div class="kpi-label">Valor Bruto Total</div>
+        <span class="kpi-delta delta-up">Base de cálculo</span>
+      </div>
+      <div class="kpi-card amber">
+        <div class="kpi-icon">◎</div>
+        <div class="kpi-value">R$ 14.841</div>
+        <div class="kpi-label">(−) MDR Contratado</div>
+        <span class="kpi-delta delta-warn">2,86% médio</span>
+      </div>
+      <div class="kpi-card red">
+        <div class="kpi-icon">⛔</div>
+        <div class="kpi-value">R$ 989</div>
+        <div class="kpi-label">(−) Impostos (PIS/COFINS/ISS)</div>
+        <span class="kpi-delta delta-down">0,19% do TPV</span>
+      </div>
+      <div class="kpi-card teal">
+        <div class="kpi-icon">◬</div>
+        <div class="kpi-value">R$ 500.765</div>
+        <div class="kpi-label">Recebível Líquido Final</div>
+        <span class="kpi-delta delta-up">96,5% de margem</span>
+      </div>
+    </div>
+
+    <div class="card mb24">
+      <div class="card-header">
+        <div><div class="card-title">Waterfall de Recebíveis</div><div class="card-sub">Bruto → (-) MDR → (-) Impostos → (-) Chargebacks → Líquido</div></div>
+        <span class="section-tag tag-green">Recebível final</span>
+      </div>
+      <div style="padding:16px 0" id="waterfall-recv"></div>
+    </div>
+
+    <div class="chart-grid chart-grid-2 mb24">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Agenda de Recebíveis — Diária</div><div class="card-sub">Bruto vs Líquido por data</div></div>
+        </div>
+        <div class="chart-wrap chart-wrap-xl"><canvas id="chart-agenda"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Fluxo de Caixa Acumulado</div><div class="card-sub">Saldo operacional diário</div></div>
+        </div>
+        <div class="chart-wrap chart-wrap-xl"><canvas id="chart-saldo-acum"></canvas></div>
+      </div>
+    </div>
+
+    <div class="alert alert-ok">
+      <div class="alert-icon">✅</div>
+      <div class="alert-text"><strong>Margem líquida de 96,5%</strong> — O pipeline de recebíveis apresenta saúde financeira sólida. O custo total da operação (MDR + tarifas + impostos) representa apenas 3,46% do TPV bruto processado.</div>
+    </div>
+    <div class="alert alert-warn">
+      <div class="alert-icon">⚠️</div>
+      <div class="alert-text"><strong>Saldo operacional de R$ 122.437:</strong> Entradas R$ 255.096 vs Saídas R$ 132.659 (chargebacks + reembolsos). O saldo positivo indica equilíbrio operacional, mas os chargebacks em prazo vencido podem gerar impacto adicional.</div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ════════════════════════════════════════════════════════════
+// DATA
+// ════════════════════════════════════════════════════════════
+const D = {
+  kpis:{
+    tpv:1494481.18,tpt:47281,taxa_conciliacao:91.6,valor_nao_conciliado:25339.84,
+    cb_valor:93998.92,cb_qtd:2971,custo_total:17961.75,liquido:500764.72,
+    saldo_final:122436.83,mdr_contratado:14841.28,mdr_cobrado:14840.82,diff_mdr:-0.46,
+    n_div_mdr:1163,prazo_vencido_cb:2971,prazo_urgente_cb:0,
+    m01_total:17924,m01_conciliados:15641,m01_sem_par:805,m01_negadas:856,m01_expiradas:622,
+    m02_total:3108,m02_conciliados:0,m02_divergentes:3108,m02_negativos:269,
+    m08_total:10246,m08_conciliados:8575,
+    total_entrada:255095.65,total_saida:132658.82,
+  },
+  tpv_bandeira:{Visa:453714.06,Mastercard:791820.9,Elo:157780.12,Amex:91166.1},
+  tpv_canal:{app:384310.8,pos:379814.43,marketplace:369680.36,ecommerce:360675.59},
+  tpv_mov:{venda:1077793.64,captura:416687.54,chargeback:143983.1,refund_parcial:238591.28},
+  tpv_mensal:{"2025-01":512201.02,"2025-02":460667.77,"2025-03":521612.39},
+  tpt_mensal:{"2025-01":15779,"2025-02":14999,"2025-03":16503},
+  mdr_res:[
+    {BANDEIRA:"Visa",TPV:199478.35,MDR_CONTRATADO:5553.74,MDR_COBRADO:5553.32,DIFF_MDR:-0.42,N_DIVERGENCIAS:447},
+    {BANDEIRA:"Mastercard",TPV:235527.9,MDR_CONTRATADO:6593.02,MDR_COBRADO:6593.13,DIFF_MDR:0.11,N_DIVERGENCIAS:460},
+    {BANDEIRA:"Elo",TPV:57062.09,MDR_CONTRATADO:1660.1,MDR_COBRADO:1659.98,DIFF_MDR:-0.12,N_DIVERGENCIAS:152},
+    {BANDEIRA:"Amex",TPV:26659.15,MDR_CONTRATADO:1034.42,MDR_COBRADO:1034.39,DIFF_MDR:-0.03,N_DIVERGENCIAS:104},
+  ],
+  aging:[{AGING_BUCKET:"> 45 dias (Vencido)",QTD:2971,VALOR:93998.92}],
+  cb_band:[
+    {BANDEIRA:"Mastercard",QTD:1729,VALOR:55051.36},
+    {BANDEIRA:"Visa",QTD:892,VALOR:28404.48},
+    {BANDEIRA:"Elo",QTD:209,VALOR:6656.36},
+    {BANDEIRA:"Amex",QTD:141,VALOR:3886.72},
+  ],
+  pipeline_disp:[
+    {STATUS_DISPUTA:"Prazo Vencido — Risco de Perda",QUANTIDADE:1085,VALOR_TOTAL:55170.92},
+    {STATUS_DISPUTA:"Representação Enviada",QUANTIDADE:634,VALOR_TOTAL:18432.15},
+  ],
+  parc_dist:[
+    {PARCELAS:2,QTD:4992},{PARCELAS:3,QTD:3339},{PARCELAS:4,QTD:3628},
+    {PARCELAS:5,QTD:3845},{PARCELAS:6,QTD:4698},{PARCELAS:7,QTD:3767},
+    {PARCELAS:8,QTD:2836},{PARCELAS:9,QTD:1861},{PARCELAS:10,QTD:1140},
+    {PARCELAS:11,QTD:612},{PARCELAS:12,QTD:688},
+  ],
+  fc:[
+    {DATA_D:"2025-01",ENTRADA:85031.88,SAIDA_CHARGEBACK:15892.14,SAIDA_REEMBOLSO:0,SALDO_BRUTO_DIA:69139.74,SALDO_ACUMULADO:69139.74},
+    {DATA_D:"2025-02",ENTRADA:85031.88,SAIDA_CHARGEBACK:15892.14,SAIDA_REEMBOLSO:29883.27,SALDO_BRUTO_DIA:39256.47,SALDO_ACUMULADO:108396.21},
+    {DATA_D:"2025-03",ENTRADA:85031.89,SAIDA_CHARGEBACK:15892.14,SAIDA_REEMBOLSO:0,SALDO_BRUTO_DIA:69139.75,SALDO_ACUMULADO:122436.83},
+  ],
+  agenda:[
+    {DATA_D:"2025-01",VALOR_BRUTO:172909.16,VALOR_MDR:4947.09,VALOR_LIQUIDO_FINAL:167295.02},
+    {DATA_D:"2025-02",VALOR_BRUTO:155889.26,VALOR_MDR:4461.97,VALOR_LIQUIDO_FINAL:150823.82},
+    {DATA_D:"2025-03",VALOR_BRUTO:189929.07,VALOR_MDR:5432.22,VALOR_LIQUIDO_FINAL:182645.88},
+  ],
+};
+
+// ════════════════════════════════════════════════════════════
+// CHART DEFAULTS
+// ════════════════════════════════════════════════════════════
+Chart.defaults.color = '#94A8C0';
+Chart.defaults.font.family = 'DM Sans';
+Chart.defaults.font.size = 11;
+Chart.defaults.plugins.legend.labels.boxWidth = 10;
+Chart.defaults.plugins.legend.labels.padding = 14;
+Chart.defaults.plugins.tooltip.backgroundColor = '#132338';
+Chart.defaults.plugins.tooltip.borderColor = 'rgba(255,255,255,0.12)';
+Chart.defaults.plugins.tooltip.borderWidth = 1;
+Chart.defaults.plugins.tooltip.padding = 10;
+Chart.defaults.plugins.tooltip.titleFont = {family:'DM Sans',weight:'600'};
+Chart.defaults.plugins.tooltip.bodyFont = {family:'DM Mono'};
+
+const PALETTE = {
+  teal:'#00C896', amber:'#F5A623', red:'#E8394A',
+  blue:'#1B6CA8', lightblue:'#5BB3F0', purple:'#8B6CF7',
+  visa:'#1A478A', mc:'#EB5454', elo:'#00875A', amex:'#007CB0',
+};
+const BAND_COLORS = {Visa:PALETTE.visa,Mastercard:PALETTE.mc,Elo:PALETTE.elo,Amex:PALETTE.amex};
+const CANAL_COLORS = ['#00C896','#1B6CA8','#8B6CF7','#F5A623'];
+
+function fmt(n){return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}).format(n)}
+function fmtN(n){return new Intl.NumberFormat('pt-BR').format(n)}
+function alpha(hex,a){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+const gridOpts = {
+  color:'rgba(255,255,255,0.05)',
+  drawBorder:false,
+};
+const axisOpts = {
+  grid:gridOpts,
+  border:{display:false},
+  ticks:{color:'#5A7090',font:{size:10}},
+};
+
+// ════════════════════════════════════════════════════════════
+// CHART BUILDERS
+// ════════════════════════════════════════════════════════════
+function makeBar(id, labels, datasets, opts={}){
+  const ctx = document.getElementById(id);
+  if(!ctx) return;
+  return new Chart(ctx, {
+    type:'bar',
+    data:{labels, datasets},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:datasets.length>1}, tooltip:{callbacks:{label:c=>' '+fmt(c.parsed.y)}}},
+      scales:{x:{...axisOpts},y:{...axisOpts,ticks:{...axisOpts.ticks,callback:v=>fmt(v)}}},
+      ...opts,
+    }
+  });
+}
+function makeLine(id, labels, datasets, opts={}){
+  const ctx = document.getElementById(id);
+  if(!ctx) return;
+  return new Chart(ctx, {
+    type:'line',
+    data:{labels, datasets},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:datasets.length>1}, tooltip:{callbacks:{label:c=>' '+fmt(c.parsed.y)}}},
+      scales:{x:{...axisOpts},y:{...axisOpts,ticks:{...axisOpts.ticks,callback:v=>fmt(v)}}},
+      ...opts,
+    }
+  });
+}
+function makeDoughnut(id, labels, data, colors, opts={}){
+  const ctx = document.getElementById(id);
+  if(!ctx) return;
+  return new Chart(ctx, {
+    type:'doughnut',
+    data:{labels, datasets:[{data, backgroundColor:colors, borderWidth:0, hoverOffset:4}]},
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'65%',
+      plugins:{
+        legend:{position:'right',labels:{font:{size:10},padding:10}},
+        tooltip:{callbacks:{label:c=>' '+fmtN(c.parsed)+' ('+Math.round(c.parsed/c.dataset.data.reduce((a,b)=>a+b,0)*100)+'%)'}}
+      },
+      ...opts,
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// INIT ALL CHARTS
+// ════════════════════════════════════════════════════════════
+function initCharts(){
+  // ── VISÃO GERAL ────────────────────────────────────────
+  const months = Object.keys(D.tpv_mensal);
+  const tpvVals = Object.values(D.tpv_mensal);
+  makeLine('chart-tpv-mensal', months, [{
+    label:'TPV',data:tpvVals,borderColor:PALETTE.teal,
+    backgroundColor:alpha(PALETTE.teal,.08),fill:true,tension:.4,
+    pointBackgroundColor:PALETTE.teal,pointRadius:4,pointHoverRadius:6,
+    borderWidth:2.5,
+  }]);
+
+  const bands = Object.keys(D.tpv_bandeira);
+  makeDoughnut('chart-bandeira', bands,
+    Object.values(D.tpv_bandeira),
+    bands.map(b=>BAND_COLORS[b]||PALETTE.blue),
+    {plugins:{tooltip:{callbacks:{label:c=>' '+fmt(c.parsed)}}}}
+  );
+
+  const canals = Object.keys(D.tpv_canal);
+  makeDoughnut('chart-canal', canals.map(c=>({app:'App',pos:'POS',marketplace:'Marketplace',ecommerce:'E-commerce'}[c]||c)),
+    Object.values(D.tpv_canal), CANAL_COLORS,
+    {plugins:{tooltip:{callbacks:{label:c=>' '+fmt(c.parsed)}}}}
+  );
+
+  const movKeys = Object.keys(D.tpv_mov);
+  makeBar('chart-movimento',
+    movKeys.map(k=>({venda:'Venda',captura:'Captura',chargeback:'Chargeback',refund_parcial:'Refund'}[k]||k)),
+    [{label:'Volume',data:Object.values(D.tpv_mov),
+      backgroundColor:[PALETTE.teal,PALETTE.blue,PALETTE.red,PALETTE.amber],
+      borderRadius:6,borderSkipped:false}],
+    {plugins:{legend:{display:false}}}
+  );
+
+  makeLine('chart-tpt-mensal', months, [{
+    label:'Transações',data:Object.values(D.tpt_mensal),
+    borderColor:PALETTE.lightblue,
+    backgroundColor:alpha(PALETTE.lightblue,.08),fill:true,tension:.4,
+    pointBackgroundColor:PALETTE.lightblue,pointRadius:4,borderWidth:2.5,
+  }],{scales:{y:{...axisOpts,ticks:{...axisOpts.ticks,callback:v=>fmtN(v)}}}});
+
+  // ── CONCILIAÇÃO ────────────────────────────────────────
+  const concStatus = ['Conciliado','Sem Par','Expirado','Negado'];
+  const concVals   = [15641, 805, 622, 856];
+  const concColors = [PALETTE.teal, PALETTE.amber, '#F5A62390', '#E8394A60'];
+  makeDoughnut('chart-conc-status', concStatus, concVals, concColors);
+
+  // Funil
+  const funil = document.getElementById('funil-conc');
+  const steps = [
+    {label:'Total Processado',n:17924,color:'#1B6CA8',w:'100%'},
+    {label:'Ativos (excl. Negadas)',n:17068,color:'#1B5E80',w:'95%'},
+    {label:'Com Par na Adquirente',n:16436,color:'#1A7060',w:'90%'},
+    {label:'Conciliados (valor ok)',n:15641,color:'#00A878',w:'85%'},
+    {label:'Exceções / Sem Par',n:805,color:'#E8394A',w:'45%'},
+  ];
+  steps.forEach(s=>{
+    const div=document.createElement('div');
+    div.className='funnel-step';
+    div.style.cssText=`background:${s.color};width:${s.w};`;
+    div.innerHTML=`<span class="funnel-label">${s.label}</span><span class="funnel-count">${fmtN(s.n)}</span>`;
+    funil.appendChild(div);
+  });
+
+  // Conciliação por bandeira
+  const cbLabels = ['Visa','Mastercard','Elo','Amex'];
+  makeBar('chart-conc-bandeira', cbLabels, [
+    {label:'Conciliado',data:[6832,5743,2067,999],backgroundColor:alpha(PALETTE.teal,.85),borderRadius:4},
+    {label:'Sem Par / Pendente',data:[820,621,156,56],backgroundColor:alpha(PALETTE.amber,.85),borderRadius:4},
+    {label:'Negada / Excluída',data:[312,1424,120,142],backgroundColor:alpha(PALETTE.red,.6),borderRadius:4},
+  ],{scales:{x:{...axisOpts,stacked:true},y:{...axisOpts,stacked:true,ticks:{...axisOpts.ticks,callback:v=>fmtN(v)}}}});
+
+  // Matriz
+  const matrizData = [
+    ['Visa','Cartão de Crédito','CONCILIADO','R$ 312.440','8.964','91,2%'],
+    ['Mastercard','Cartão de Crédito','CONCILIADO','R$ 272.640','7.788','87,9%'],
+    ['Elo','Cartão de Crédito','CONCILIADO','R$ 67.150','1.943','93,7%'],
+    ['Amex','Cartão de Crédito','CONCILIADO','R$ 27.110','997','97,5%'],
+    ['Visa','Cartão de Crédito','SEM_PAR','R$ 25.340','820','—'],
+    ['Mastercard','Cartão de Crédito','PENDENTE','R$ 18.610','621','—'],
+  ];
+  const tbody = document.getElementById('matriz-conc');
+  matrizData.forEach(row=>{
+    const tr = document.createElement('tr');
+    const pillClass = {CONCILIADO:'pill-green',SEM_PAR:'pill-red',PENDENTE:'pill-amber'}[row[2]]||'pill-gray';
+    tr.innerHTML = `
+      <td>${row[0]}</td><td>${row[1]}</td>
+      <td><span class="pill ${pillClass}">${row[2]}</span></td>
+      <td style="font-family:'DM Mono',monospace">${row[3]}</td>
+      <td>${row[4]}</td>
+      <td><span class="hl">${row[5]}</span></td>`;
+    tbody.appendChild(tr);
+  });
+
+  // ── M01 PAGAMENTOS ─────────────────────────────────────
+  makeDoughnut('chart-m01-status',
+    ['Conciliado','Sem Par','Expirada','Negada'],
+    [15641,805,622,856],
+    [PALETTE.teal,PALETTE.amber,'#F5A62370',PALETTE.red+'50']
+  );
+  makeBar('chart-pag-valor',
+    ['Conciliado','Sem Par'],
+    [{label:'Valor (R$)',data:[492962,25340],
+      backgroundColor:[alpha(PALETTE.teal,.8),alpha(PALETTE.amber,.8)],borderRadius:8}],
+    {plugins:{legend:{display:false}}}
+  );
+  makeBar('chart-pag-status-op',
+    ['Capturada','Autorizada','Cancelada','Liq. Prevista','Negada'],
+    [{label:'Transações',data:[7937,7866,1960,971,958],
+      backgroundColor:[PALETTE.teal,PALETTE.lightblue,PALETTE.amber,PALETTE.purple,PALETTE.red],borderRadius:6}],
+    {plugins:{legend:{display:false}},scales:{y:{...axisOpts,ticks:{...axisOpts.ticks,callback:v=>fmtN(v)}}}}
+  );
+
+  // ── M02 REEMBOLSOS ─────────────────────────────────────
+  makeBar('chart-refund-dist',
+    ['Refunds BID','Parcelas DTP'],
+    [{label:'Total Registros',data:[3108,9250],backgroundColor:[alpha(PALETTE.blue,.8),alpha(PALETTE.lightblue,.6)],borderRadius:8},
+     {label:'Negativos (Anomalia)',data:[269,815],backgroundColor:[alpha(PALETTE.red,.8),alpha(PALETTE.red,.6)],borderRadius:8}],
+    {scales:{y:{...axisOpts,ticks:{...axisOpts.ticks,callback:v=>fmtN(v)}}}}
+  );
+  makeBar('chart-refund-band',
+    ['Visa','Elo','Amex'],
+    [{label:'Refunds BID',data:[2421,538,149],backgroundColor:['#1A478A90','#00875A90','#007CB090'],borderRadius:6},
+     {label:'Negativos',data:[187,52,30],backgroundColor:[PALETTE.red,PALETTE.red,PALETTE.red],borderRadius:6}],
+    {scales:{y:{...axisOpts,ticks:{...axisOpts.ticks,callback:v=>fmtN(v)}}}}
+  );
+
+  // ── M08 PARCELAMENTOS ──────────────────────────────────
+  makeBar('chart-parc-dist',
+    D.parc_dist.map(p=>p.PARCELAS+'x'),
+    [{label:'Transações',data:D.parc_dist.map(p=>p.QTD),
+      backgroundColor:D.parc_dist.map((_,i)=>`hsl(${170+i*8},60%,${40+i*2}%)`),borderRadius:6}],
+    {plugins:{legend:{display:false}},scales:{y:{...axisOpts,ticks:{...axisOpts.ticks,callback:v=>fmtN(v)}}}}
+  );
+  makeBar('chart-parc-valor',
+    D.parc_dist.map(p=>p.PARCELAS+'x'),
+    [{label:'MDR estimado %',
+      data:[2.39,2.39,3.19,3.19,3.19,3.59,3.59,3.59,3.59,3.59,3.59],
+      backgroundColor:D.parc_dist.map((_,i)=>i<4?alpha(PALETTE.teal,.7):i<6?alpha(PALETTE.amber,.7):alpha(PALETTE.red,.7)),borderRadius:6},
+    ],
+    {plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` MDR: ${c.parsed.y}%`}}},
+     scales:{y:{...axisOpts,max:5,ticks:{...axisOpts.ticks,callback:v=>v+'%'}}}}
+  );
+
+  // ── CHARGEBACKS ────────────────────────────────────────
+  const agingEl = document.getElementById('aging-grid');
+  const agingBuckets = [
+    {bucket:'0–15 dias',qtd:0,valor:0,color:PALETTE.teal},
+    {bucket:'16–30 dias',qtd:0,valor:0,color:PALETTE.amber},
+    {bucket:'31–45 dias (Urgente)',qtd:0,valor:0,color:'#F5A623'},
+    {bucket:'> 45 dias (Vencido)',qtd:2971,valor:93998.92,color:PALETTE.red},
+  ];
+  agingBuckets.forEach(a=>{
+    const div=document.createElement('div');
+    div.className='aging-card';
+    div.innerHTML=`<div class="aging-days">${a.bucket}</div>
+      <div class="aging-qtd" style="color:${a.color}">${fmtN(a.qtd)}</div>
+      <div class="aging-val">${fmt(a.valor)}</div>`;
+    agingEl.appendChild(div);
+  });
+
+  makeDoughnut('chart-cb-band',
+    D.cb_band.map(c=>c.BANDEIRA),
+    D.cb_band.map(c=>c.QTD),
+    D.cb_band.map(c=>BAND_COLORS[c.BANDEIRA]||PALETTE.blue),
+  );
+
+  // Pipeline disputas
+  const pipeEl = document.getElementById('pipeline-disp');
+  const pipeColors = [PALETTE.red, PALETTE.teal, PALETTE.amber, PALETTE.blue];
+  D.pipeline_disp.forEach((p,i)=>{
+    const div=document.createElement('div');
+    div.style.cssText=`display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.05)`;
+    div.innerHTML=`<span style="font-size:12px;color:#94A8C0">${p.STATUS_DISPUTA}</span>
+      <div style="text-align:right">
+        <div style="font-family:'DM Mono',monospace;font-size:14px;color:${pipeColors[i]}">${fmtN(p.QUANTIDADE)}</div>
+        <div style="font-size:10px;color:#5A7090">${fmt(p.VALOR_TOTAL)}</div>
+      </div>`;
+    pipeEl.appendChild(div);
+  });
+
+  makeDoughnut('chart-cb-debitado',
+    ['Debitados','Pendentes'],
+    [1348,625],
+    [PALETTE.teal,PALETTE.amber]
+  );
+
+  // ── TAXAS ──────────────────────────────────────────────
+  makeBar('chart-mdr-comp',
+    D.mdr_res.map(r=>r.BANDEIRA),
+    [
+      {label:'MDR Contratado',data:D.mdr_res.map(r=>r.MDR_CONTRATADO),backgroundColor:alpha(PALETTE.teal,.8),borderRadius:6},
+      {label:'MDR Cobrado',   data:D.mdr_res.map(r=>r.MDR_COBRADO),   backgroundColor:alpha(PALETTE.amber,.8),borderRadius:6},
+    ]
+  );
+
+  // Waterfall custo
+  const wfEl = document.getElementById('waterfall-custo');
+  const wfItems = [
+    {label:'MDR Contratado', val:14841.28, pct:100,  cls:'wf-bar-teal'},
+    {label:'MDR Cobrado',    val:14840.82, pct:99.99, cls:'wf-bar-amber'},
+    {label:'PIS + COFINS',   val:663.42,  pct:4.47, cls:'wf-bar-blue'},
+    {label:'ISS',            val:296.82,  pct:2.00,  cls:'wf-bar-purple'},
+    {label:'Tarifa/TX',      val:1608.41, pct:10.84, cls:'wf-bar-red'},
+    {label:'Custo Total',    val:17961.75,pct:100,   cls:'wf-bar-amber'},
+  ];
+  wfItems.forEach(w=>{
+    const row=document.createElement('div');
+    row.className='wf-row';
+    row.innerHTML=`<span class="wf-label">${w.label}</span>
+      <div class="wf-bar-wrap"><div class="wf-bar ${w.cls}" style="width:${w.pct}%"></div></div>
+      <span class="wf-value">${fmt(w.val)}</span>`;
+    wfEl.appendChild(row);
+  });
+
+  // MDR Table
+  const mdrBody = document.getElementById('mdr-table-body');
+  const mdrRows = [
+    ['Visa','Débito','1x','1,49%','✅'],
+    ['Visa','Crédito','1x','2,39%','✅'],
+    ['Visa','Crédito','2–6x','3,19%','✅'],
+    ['Visa','Crédito','7–12x','3,59%','✅'],
+    ['Mastercard','Débito','1x','1,49%','✅'],
+    ['Mastercard','Crédito','1x','2,39%','✅'],
+    ['Mastercard','Crédito','2–6x','3,19%','✅'],
+    ['Mastercard','Crédito','7–12x','3,59%','✅'],
+    ['Elo','Crédito','1x','2,45%','✅'],
+    ['Amex','Crédito','1x','2,99%','✅'],
+  ];
+  mdrRows.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=r.map((c,ci)=>`<td${ci===3?` style="color:var(--amber);font-family:'DM Mono',monospace"`:ci===4?` style="color:var(--teal)"`:''}>${c}</td>`).join('');
+    mdrBody.appendChild(tr);
+  });
+
+  // ── RECEBÍVEIS ─────────────────────────────────────────
+  const wfRecv = document.getElementById('waterfall-recv');
+  const wfRecvItems = [
+    {label:'(+) Valor Bruto',      val:518727.49, pct:100, cls:'wf-bar-teal'},
+    {label:'(−) MDR Contratado',   val:14841.28,  pct:2.86, cls:'wf-bar-amber'},
+    {label:'(−) Tarifas Operac.',  val:1608.41,   pct:0.31, cls:'wf-bar-red'},
+    {label:'(−) PIS/COFINS/ISS',   val:988.84,    pct:0.19, cls:'wf-bar-purple'},
+    {label:'(−) Chargebacks',      val:0,          pct:0,    cls:'wf-bar-red'},
+    {label:'(=) Recebível Líquido',val:500764.72,  pct:96.5, cls:'wf-bar-blue'},
+  ];
+  wfRecvItems.forEach(w=>{
+    const row=document.createElement('div');
+    row.className='wf-row';
+    row.innerHTML=`<span class="wf-label">${w.label}</span>
+      <div class="wf-bar-wrap"><div class="wf-bar ${w.cls}" style="width:${w.pct}%"></div></div>
+      <span class="wf-value">${fmt(w.val)}</span>`;
+    wfRecv.appendChild(row);
+  });
+
+  // Agenda
+  makeLine('chart-agenda',
+    D.agenda.map(a=>a.DATA_D),
+    [
+      {label:'Bruto',data:D.agenda.map(a=>a.VALOR_BRUTO),borderColor:PALETTE.blue,backgroundColor:alpha(PALETTE.blue,.08),fill:true,tension:.4,borderWidth:2},
+      {label:'Líquido',data:D.agenda.map(a=>a.VALOR_LIQUIDO_FINAL),borderColor:PALETTE.teal,backgroundColor:alpha(PALETTE.teal,.08),fill:true,tension:.4,borderWidth:2},
+    ]
+  );
+
+  // Saldo acumulado
+  makeLine('chart-saldo-acum',
+    D.fc.map(r=>r.DATA_D),
+    [
+      {label:'Entradas',data:D.fc.map(r=>r.ENTRADA),borderColor:PALETTE.teal,backgroundColor:alpha(PALETTE.teal,.06),fill:true,tension:.4,borderWidth:2},
+      {label:'Saídas (CB+Refund)',data:D.fc.map(r=>r.SAIDA_CHARGEBACK+r.SAIDA_REEMBOLSO),borderColor:PALETTE.red,backgroundColor:alpha(PALETTE.red,.06),fill:true,tension:.4,borderWidth:2},
+      {label:'Saldo Acumulado',data:D.fc.map(r=>r.SALDO_ACUMULADO),borderColor:PALETTE.amber,backgroundColor:'transparent',tension:.4,borderWidth:2.5,borderDash:[6,3]},
+    ]
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════════════
+const PANEL_TITLES = {
+  'visao-geral':   'Visão Geral da Operação',
+  'conciliacao':   'Resumo de Conciliação',
+  'pagamentos':    'Conciliação — Pagamentos e Anulações',
+  'reembolsos':    'Conciliação — Reembolsos',
+  'parcelamentos': 'Conciliação — Parcelamentos',
+  'chargebacks':   'Chargebacks e Disputas',
+  'taxas':         'Taxas, MDR e Controle de Custos',
+  'recebiveis':    'Recebíveis Líquidos e Fluxo de Caixa',
+};
+
+document.querySelectorAll('.nav-item').forEach(item=>{
+  item.addEventListener('click',()=>{
+    const tab = item.dataset.tab;
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    item.classList.add('active');
+    const panel = document.getElementById('panel-'+tab);
+    if(panel) panel.classList.add('active');
+    document.getElementById('topbar-title').textContent = PANEL_TITLES[tab]||tab;
+  });
+});
+
+document.getElementById('toggle-sidebar').addEventListener('click',()=>{
+  document.getElementById('sidebar').classList.toggle('expanded');
+});
+
+// Animate progress bars on load
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    document.querySelectorAll('.conc-bar-fill').forEach(el=>{
+      el.style.width = el.dataset.pct+'%';
+    });
+    document.querySelectorAll('.wf-bar').forEach(el=>{
+      const w = el.style.width;
+      el.style.width='0';
+      setTimeout(()=>el.style.width=w,100);
+    });
+  },200);
+  initCharts();
+});
+</script>
+</body>
+</html>
