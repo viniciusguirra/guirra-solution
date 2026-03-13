@@ -1,4 +1,4 @@
-# 💳 Guirra Solution — Plataforma de Conciliação Financeira de Meios de Pagamento
+# 💳 Guirra Solution — Plataforma de Conciliação Financeira de Meios de Pagamentos
 
 <div align="center">
 
@@ -9,7 +9,7 @@
 ![Status](https://img.shields.io/badge/Status-Concluído-00A878?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)
 
-**Projeto de portfólio profissional** simulando uma plataforma completa de conciliação financeira para uma adquirente de meios de pagamento (Adquirente XZ), cobrindo 11 módulos de conciliação, 83.853 registros e R$ 1,49M em volume processado.
+**Projeto de portfólio profissional** simulando uma plataforma completa de conciliação financeira para uma adquirente de meios de pagamentos (Adquirente XZ), cobrindo 11 módulos de conciliação, 83.853 registros e R$ 1,49M em volume processado.
 
 [📊 Ver Dashboard](#-dashboard) · [📁 Estrutura do Projeto](#-estrutura-do-projeto) · [🚀 Como Executar](#-como-executar) · [📋 Resultados](#-resultados-por-módulo)
 
